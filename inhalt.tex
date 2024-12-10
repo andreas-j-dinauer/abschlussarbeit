@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{fontspec}
+\setmainfont{Arial}
+
+\begin{document}
+
+%\renewcommand\thesection{\ifnum\value{section}<5\Roman{section}\else\arabic{section}\fi}
+\renewcommand\thesection{\Roman{section}}
+\pagenumbering{Roman}
+\begin{titlepage}
+    \begin{center}
+        \includegraphics[scale=.3]{dateien/THI_Logo.jpg} \\
+        \vspace{0.5cm}
+        Technische Hochschule Ingolstadt\\
+        \vspace{1cm}
+        \normalsize
+        Andreas Dinauer\\
+        and2925@thi.de\\
+        
+        \vspace*{0.5cm}
+        \LARGE
+        \textbf{Erstellung eines Knowledge Graphen aus Jira-Tickets}
+            
+        \vspace{1cm}
+        \normalsize
+        Erstprüfer/-in: Prof. Dr. Hans-Michael Windisch \\
+        Zweitprüfer/-in: Prof. Dr. Beate Navarro Bullock \\
+        \vspace{1cm}
+        \normalsize
+        Externer Partner: Exentra GmbH
+            
+    \end{center}
+\end{titlepage}
+
+\newpage
+
+\section{Inhaltsverzeichnis}
+\newpage
+\section{Abkürzungsverzeichnis}
+\newpage
+\section{Abbildungsverzeichnis}
+\newpage
+\section{Tabellenverzeichnis}
+\newpage
+\setcounter{section}{0}
+\renewcommand\thesection{\arabic{section}}
+\pagenumbering{arabic}
+\section{Einleitung}
+Ungefähr 4 von 5 Personen kommunizieren laut Umfragen mit Chatbots. Außerdem geben 27 Prozent aller Unternehmen an, einen Chatbot im Einsatz zu haben. 22 Prozent aller Unternehmen nutzen durch Künstliche Intelligenz automatisierte Arbeitsschritte. Um Chatbots im Unternehmenskontext einsetzen zu können, müssen diese mit dem Unternehmensumfeld, also den Daten und Abläufen des Unternehmens vertraut gemacht werden.
+\section{Aufbau des Systems}
+Das System besteht aus drei verschiedenen Komponenten, dem Quellsystem, einem Extraktor sowie einem Zielsystem. Im Quellsystem befinden sich die Rohdaten aus dem operativen Betrieb. Diese sollen mit Hilfe des Extraktors extrahiert und im Zielsystem strukturiert abgespeichert werden. Während es sich beim Quellsystem um eine Jira Cloud-Instanz handelt, ist das Zielsystem eine Datenbank. Der Extraktor ist ein Softwareprogramm, welches periodisch zur Ausführung gebracht wird.
+\subsection{Auswahl der Softwarekomponenten}
+Im folgenden wird begründet, warum eine bestimmte Technologie ausgewählt wird und wie diese unser System ergänzt und warum diese optimal mit anderen Komponenten integriert werden kann.
+\subsubsection{Auswahl eines geeigneten Datenbankmodells}
+\subsubsection{Auswahl eines geeigneten Extraktors}
+Der Extraktor unseres Systems implementiert den ETL-Prozess und bringt diesen zur Ausführung. Implementiert wird dieser in der Programmiersprache Java. Grund hierfür ist, dass Java sehr weit verbreitet und etabliert ist sowie eine große Auswahl Frameworks und Bibliotheken bei der Entwicklung bietet. Zur Unterstützung in der Entwicklung wird ein Framework verwendet. Aus verschiedenen Gründe wird Quarkus eingesetzt. Quarkus zeichnet sich durch eine schnelle Startzeit sowie die Optimierung für Container-Technologien und somit Cloud-Umgebungen aus. Ein weiterer Vorteil der Quarkus-Frameworks ist die Implementierung der Jakarta WS RS Schnittstelle.
+\subsection{Konzept des Data Warehouses}
+Die Architektur unseres Systems ist einem Data Warehouse sehr ähnlich und erfüllt alle Eigenschaften eines Data Warehouses nach Inmon.
+\section{Chancen und Eigenschaften von Graphdatenbanken}
+\newpage
+\section{Anhang}
+\newpage
+\section{Literaturverzeichnis}
+
+\end{document}
