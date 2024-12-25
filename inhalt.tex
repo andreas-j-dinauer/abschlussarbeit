@@ -1,6 +1,6 @@
-\documentclass{article}
+\documentclass[10pt]{article}
 \usepackage{graphicx} % Required for inserting images
-\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage[a4paper, total={150mm, 237mm}]{geometry}
 \usepackage{fontspec}
 \setmainfont{Arial}
 
@@ -48,20 +48,51 @@
 \renewcommand\thesection{\arabic{section}}
 \pagenumbering{arabic}
 \section{Einleitung}
-Ungefähr 4 von 5 Personen kommunizieren laut Umfragen mit Chatbots. Außerdem geben 27 Prozent aller Unternehmen an, einen Chatbot im Einsatz zu haben. 22 Prozent aller Unternehmen nutzen durch Künstliche Intelligenz automatisierte Arbeitsschritte. Um Chatbots im Unternehmenskontext einsetzen zu können, müssen diese mit dem Unternehmensumfeld, also den Daten und Abläufen des Unternehmens vertraut gemacht werden.
+Ungefähr 4 von 5 Personen kommunizieren laut Umfragen mit Chatbots. Außerdem geben 27 Prozent aller Unternehmen an, einen Chatbot im Einsatz zu haben. 22 Prozent aller Unternehmen nutzen bereits durch Künstliche Intelligenz automatisierte oder unterstützte Arbeitsschritte. Um Chatbots im Unternehmenskontext einsetzen zu können, müssen diese mit dem Unternehmensumfeld, also den Daten und Abläufen des Unternehmens vertraut gemacht werden. Dazu wird untersucht, wie ein Knowledge Graph aus einer bereits existierenden und stetig weiter wachsenden Sammlung aus Tickets eines Jira-Systems erstellt werden kann. Berücksichtigt werden hierbei Duplikate, Dateninkonsistenzen, sowie die Historisierung und Auditierung. Der Hauptaspekt dieser Arbeit ist das Design, sowie die Implementierung des Datenbankschemas und der Extraktor-Komponente. Am Ende wird geprüft, ob sich eine Graphdatenbank für die Integration eines Chatbots eigenet, um möglichst schnell und präsize das Informationsbefürdnis eines Anwender zu befriedigen.
 \section{Aufbau des Systems}
 Das System besteht aus drei verschiedenen Komponenten, dem Quellsystem, einem Extraktor sowie einem Zielsystem. Im Quellsystem befinden sich die Rohdaten aus dem operativen Betrieb. Diese sollen mit Hilfe des Extraktors extrahiert und im Zielsystem strukturiert abgespeichert werden. Während es sich beim Quellsystem um eine Jira Cloud-Instanz handelt, ist das Zielsystem eine Datenbank. Der Extraktor ist ein Softwareprogramm, welches periodisch zur Ausführung gebracht wird.
-\subsection{Auswahl der Softwarekomponenten}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=.6]{dateien/ETL-Prozess.jpg}
+\caption{Der ETL-Prozess zum Aufbau des Knowledge Graphen}
+\label{fig:meine-grafik}
+\end{figure}
+\section{Anforderungserhebung}
+Zunächst müssen die Anforderungen an das System erhoben und kategorisiert werden. Dabei wird zwischen funktionalen und nicht-funktionalen Anforderungen unterschieden.
+\subsection{Funktionale Anforderungen}
+Funktionale Anforderungen beschreiben die...
+Das System soll genau eine Jira-Cloud Instanz als Datenquelle verwenden. \\
+Das System kann mehrere Projekte aus der gleichen Jira-Cloud Instanz extrahieren. Es soll möglich sein, diese Projekte genau zu konfigurieren. Dabei soll es auch möglich sein, für jedes Projekt die zu extrahierenden Vorgangstypen festzulegen.
+Das System soll alle neuen oder geänderten Objekte periodisch exportieren. Ein Exportvorgang soll einmal pro Tag stattfinden. Ein Exportvorgang soll immer zur gleichen Tageszeit und außerhalb der Zeit geschehen, in welcher mit dem Zielsystem gearbeitet wird.
+
+\subsection{Nicht-funktionale Anforderungen}
+Das System soll alle Extraktionsvorgänge in einer Datenbank dokumentieren und falls eine Ausführung nicht stattgefunden hat, dieses erkennen, diese bis zu einem gewissen Zeitpunkt nachholen. Eine Ausführung kann beispielsweise nicht stattfinden, wenn das System zum geplanten Zeitpunkt nicht lauffähig ist. Wird die Applikation später gestartet, soll diese mit der Ausführung beginnen.
+Das System soll flexibel gestaltet sein und alle notwendigen Parameter zur Extraktion durch Umgebungsvariablen erhalten. Wichtige Parameter sind beispielsweise der Jira Benutzer, dessen Passwort und die URL der Jira Instanz. Ein Pfad zur Konfigurationsdatei aller relevanten Jira-Projekte sowie Vorgangstypen, welche zur Extraktion bestimmt sind, soll auch durch eine Umgebungsvariable gesetzt werden können.
+Die Applikation soll speziell für containerisierte Umgebungen und Cloudumgebungen bestimmt sein und somit als Image für IaC-Anwendungen (z.B. Docker oder Kubernetes) ausführbar sein.
+\section{Auswahl der Softwarekomponenten}
 Im folgenden wird begründet, warum eine bestimmte Technologie ausgewählt wird und wie diese unser System ergänzt und warum diese optimal mit anderen Komponenten integriert werden kann.
 \subsubsection{Auswahl eines geeigneten Datenbankmodells}
 \subsubsection{Auswahl eines geeigneten Extraktors}
 Der Extraktor unseres Systems implementiert den ETL-Prozess und bringt diesen zur Ausführung. Implementiert wird dieser in der Programmiersprache Java. Grund hierfür ist, dass Java sehr weit verbreitet und etabliert ist sowie eine große Auswahl Frameworks und Bibliotheken bei der Entwicklung bietet. Zur Unterstützung in der Entwicklung wird ein Framework verwendet. Aus verschiedenen Gründe wird Quarkus eingesetzt. Quarkus zeichnet sich durch eine schnelle Startzeit sowie die Optimierung für Container-Technologien und somit Cloud-Umgebungen aus. Ein weiterer Vorteil der Quarkus-Frameworks ist die Implementierung der Jakarta WS RS Schnittstelle.
 \subsection{Konzept des Data Warehouses}
-Die Architektur unseres Systems ist einem Data Warehouse sehr ähnlich und erfüllt alle Eigenschaften eines Data Warehouses nach Inmon.
+Die Architektur unseres Systems ist einem Data Warehouse sehr ähnlich und erfüllt alle Eigenschaften eines Data Warehouses nach Inmon. Diese Erkenntnis unterstützt beim Entwurf des Systems und ermöglich es, Konzepte und Technologien des Data Warehouses einzusetzen.
+\begin{itemize}
+  \item Historisierung: Alle Objekte des Jira Systems sind mit einem Zeitstempel der letzten Änderung, sowie der Erstellung versehen, was den Aufbau eines historisierten Datenbestandes ermöglicht.
+  \item Integriert: Wir extrahieren unsere Daten aus nur einem System. Das Hinzufügen eines weiteren Jira-Systems ist möglich und wird in der Architektur des Systems berücksichtigt.
+  \item Nicht-Volatilität: Der Datenbestand wird dauerhaft aufgebaut und bleibt bestehen. In Gegensatz zu operativen Systemen werden aus unserem Zielsystem keine Daten gelöscht.
+  \item Fach-orientiert: Unser Datenbestand hält fachliche Daten aus dem operativen Geschäftsablauf.
+\end{itemize}
 \section{Chancen und Eigenschaften von Graphdatenbanken}
 \newpage
+\section{Systemarchitektur und Implementierung}
+\subsection{Implementierung der Extraktor-Komponente}
+\subsubsection{Extraktion der Daten}
+\subsubsection{Quellsystem}
+\subsubsection{Zielsystem}
+\subsection{}
 \section{Anhang}
 \newpage
 \section{Literaturverzeichnis}
+Systematisches Requirements Engineering : Anforderungen ermitteln, dokumentieren, analysieren und verwalten 
 
 \end{document}
