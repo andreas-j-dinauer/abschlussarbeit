@@ -87,6 +87,9 @@ Die Architektur unseres Systems ist einem Data Warehouse sehr ähnlich und erfü
 \section{Systemarchitektur und Implementierung}
 \subsection{Implementierung der Extraktor-Komponente}
 \subsubsection{Extraktion der Daten}
+\subsubsection{Laden der Daten}
+Ein zentrales Problem beim Laden der Daten in unser Zielsystem ist die Erkennung von bereits zuvor extrahierten und geladenen Objekten. Um ein breits in das Zielsystem geladenes Objekt zu identifizieren, kann zunächst ein eindeutiger Schlüssel festgelegt werden. Stimmt dieser Schlüssel mit einem Objekt im Zielsystem überein, wurde dieses Objekt bereits geladen und ein Match wurde gefunden. Außerdem können jedoch Sachverhalte auftreten in welchen ein Schlüssel nicht ausreichend ist, um einen Sachverhalt mittels dem Vergleich einer Zeichenkette zwei Objekte als dasselbe zu identifizieren. In folge dessen ist ein ausführlicher Vergleich verschiedener Attribute der Objekte notwendig. Sind umfangreiche Freitextfelder wie z.B Beschreibungen vorhanden, können diese mittels Künstlicher Intelligenz verglichen werden, um möglicherweise einen Match zu erkennen. Bei einem Jira-Ticket sind können verschiedene Felder, wie z.B der Titel oder die Beschreibung eines Tickets für einen Vergleich herangezogen werden.
+
 \subsubsection{Quellsystem}
 \subsubsection{Zielsystem}
 \subsection{}
