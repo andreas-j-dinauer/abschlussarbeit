@@ -1,5 +1,6 @@
 \documentclass[10pt]{article}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{listings}
 \usepackage[a4paper, total={150mm, 237mm}]{geometry}
 \usepackage{fontspec}
 \setmainfont{Arial}
@@ -60,12 +61,20 @@ Das System besteht aus drei verschiedenen Komponenten, dem Quellsystem, einem Ex
 \section{Anforderungserhebung}
 Zunächst müssen die Anforderungen an das System erhoben und kategorisiert werden. Dabei wird zwischen funktionalen und nicht-funktionalen Anforderungen unterschieden.
 \subsection{Funktionale Anforderungen}
-Funktionale Anforderungen beschreiben die...
+Funktionale Anforderungen beschreiben die fachliche Spezifikation eines Systems, sowie alle Schnittstellen inklusive der Eingangs- sowie Ausgabeparameter des Systems. Diese Anforderungen werden in der Testphase der Entwicklung in Testfälle überführt. Können die Tests erfolgreich ausgeführt werden, so erfüllt die Applikation die zuvor festgelegten Anforderungen.\\
 Das System soll genau eine Jira-Cloud Instanz als Datenquelle verwenden. \\
-Das System kann mehrere Projekte aus der gleichen Jira-Cloud Instanz extrahieren. Es soll möglich sein, diese Projekte genau zu konfigurieren. Dabei soll es auch möglich sein, für jedes Projekt die zu extrahierenden Vorgangstypen festzulegen.
+Die Interaktion mit der Jira-Cloud API soll mittels der breits von Atlassian bereitgestellten Softwarekomponenten umgesetzt werden. Es soll Basic-Authorization verwendet werden.
+Das System kann mehrere Projekte aus der gleichen Jira-Cloud Instanz extrahieren.\\ Es soll möglich sein, diese Projekte genau zu konfigurieren. Dabei soll es auch möglich sein, für jedes Projekt die zu extrahierenden Vorgangstypen festzulegen. Folgende JSON-Datei gibt unserer Applikation die Anweisung, den Issuetype Task und Bug des Projektes mit dem Schlüssel KAW und den Issuetype Story und Task des Projektes mit dem Schlüssel MUN zu extrahieren und in das Zielsystem zu laden:
+\begin{lstlisting}
+{
+    "KAW": ["Task", "Bug"],
+    "MUN": ["Story", "Task"]
+}
+\end{lstlisting}
 Das System soll alle neuen oder geänderten Objekte periodisch exportieren. Ein Exportvorgang soll einmal pro Tag stattfinden. Ein Exportvorgang soll immer zur gleichen Tageszeit und außerhalb der Zeit geschehen, in welcher mit dem Zielsystem gearbeitet wird.
 
 \subsection{Nicht-funktionale Anforderungen}
+Nicht-funktionale Anforderungen beschreiben den Aufbau des Systems. Auch sie werden in Form von Testfällen nach Beenden der Entwicklung geprüft und müssen für eine erfolgreiche Entwicklung erfüllt sein.\\
 Das System soll alle Extraktionsvorgänge in einer Datenbank dokumentieren und falls eine Ausführung nicht stattgefunden hat, dieses erkennen, diese bis zu einem gewissen Zeitpunkt nachholen. Eine Ausführung kann beispielsweise nicht stattfinden, wenn das System zum geplanten Zeitpunkt nicht lauffähig ist. Wird die Applikation später gestartet, soll diese mit der Ausführung beginnen.
 Das System soll flexibel gestaltet sein und alle notwendigen Parameter zur Extraktion durch Umgebungsvariablen erhalten. Wichtige Parameter sind beispielsweise der Jira Benutzer, dessen Passwort und die URL der Jira Instanz. Ein Pfad zur Konfigurationsdatei aller relevanten Jira-Projekte sowie Vorgangstypen, welche zur Extraktion bestimmt sind, soll auch durch eine Umgebungsvariable gesetzt werden können.
 Die Applikation soll speziell für containerisierte Umgebungen und Cloudumgebungen bestimmt sein und somit als Image für IaC-Anwendungen (z.B. Docker oder Kubernetes) ausführbar sein.
@@ -87,6 +96,7 @@ Die Architektur unseres Systems ist einem Data Warehouse sehr ähnlich und erfü
 \section{Systemarchitektur und Implementierung}
 \subsection{Implementierung der Extraktor-Komponente}
 \subsubsection{Extraktion der Daten}
+Der Extraktor soll kaskadenartig vorgehen. In einem Jira-Projekt stehen viele Objekttypen mit einer 1:n Kardinalität in Verbindung (z.B Projekt und Issue oder Issue und Kommentar). Der Extraktor beginnt mit dem höchsten Objekt in der Hierarchie also einem Jira Projekt und arbeitet sich schrittweise durch alle Objekttypen. Zunächst werden für ein Jira Projekt alle relevanten Vorgänge ermittelt und extrahiert. Diese Vorgänge wiederum stehen in Beziehung mit weiteren Objekttypen, welche anschließend ebenfalls extrahiert werden. Dabei sind Felder, Kommentare, Anhänge oder die Historie des Vorgangs relevant. Außerdem soll zu jedem Vorgang auch der Vorgangstyp extrahiert werden, welcher meist die Art des Vorgangs beschreibt. Ein Vorgangstyp Bug beispielsweise verdeutlicht, dass dieser Vorgang existiert, um ein bestehendes Problem zu lösen.
 \subsubsection{Laden der Daten}
 Ein zentrales Problem beim Laden der Daten in unser Zielsystem ist die Erkennung von bereits zuvor extrahierten und geladenen Objekten. Um ein breits in das Zielsystem geladenes Objekt zu identifizieren, kann zunächst ein eindeutiger Schlüssel festgelegt werden. Stimmt dieser Schlüssel mit einem Objekt im Zielsystem überein, wurde dieses Objekt bereits geladen und ein Match wurde gefunden. Außerdem können jedoch Sachverhalte auftreten in welchen ein Schlüssel nicht ausreichend ist, um einen Sachverhalt mittels dem Vergleich einer Zeichenkette zwei Objekte als dasselbe zu identifizieren. In folge dessen ist ein ausführlicher Vergleich verschiedener Attribute der Objekte notwendig. Sind umfangreiche Freitextfelder wie z.B Beschreibungen vorhanden, können diese mittels Künstlicher Intelligenz verglichen werden, um möglicherweise einen Match zu erkennen. Bei einem Jira-Ticket sind können verschiedene Felder, wie z.B der Titel oder die Beschreibung eines Tickets für einen Vergleich herangezogen werden.
 
