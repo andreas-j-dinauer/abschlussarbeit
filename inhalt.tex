@@ -62,22 +62,27 @@ Das System besteht aus drei verschiedenen Komponenten, dem Quellsystem, einem Ex
 Zunächst müssen die Anforderungen an das System erhoben und kategorisiert werden. Dabei wird zwischen funktionalen und nicht-funktionalen Anforderungen unterschieden.
 \subsection{Funktionale Anforderungen}
 Funktionale Anforderungen beschreiben die fachliche Spezifikation eines Systems, sowie alle Schnittstellen inklusive der Eingangs- sowie Ausgabeparameter des Systems. Diese Anforderungen werden in der Testphase der Entwicklung in Testfälle überführt. Können die Tests erfolgreich ausgeführt werden, so erfüllt die Applikation die zuvor festgelegten Anforderungen.\\
-Das System soll genau eine Jira-Cloud Instanz als Datenquelle verwenden. \\
-Die Interaktion mit der Jira-Cloud API soll mittels der breits von Atlassian bereitgestellten Softwarekomponenten umgesetzt werden. Es soll Basic-Authorization verwendet werden.
-Das System kann mehrere Projekte aus der gleichen Jira-Cloud Instanz extrahieren.\\ Es soll möglich sein, diese Projekte genau zu konfigurieren. Dabei soll es auch möglich sein, für jedes Projekt die zu extrahierenden Vorgangstypen festzulegen. Folgende JSON-Datei gibt unserer Applikation die Anweisung, den Issuetype Task und Bug des Projektes mit dem Schlüssel KAW und den Issuetype Story und Task des Projektes mit dem Schlüssel MUN zu extrahieren und in das Zielsystem zu laden:
-\begin{lstlisting}
-{
-    "KAW": ["Task", "Bug"],
-    "MUN": ["Story", "Task"]
-}
-\end{lstlisting}
-Das System soll alle neuen oder geänderten Objekte periodisch exportieren. Ein Exportvorgang soll einmal pro Tag stattfinden. Ein Exportvorgang soll immer zur gleichen Tageszeit und außerhalb der Zeit geschehen, in welcher mit dem Zielsystem gearbeitet wird.
+\begin{itemize}
+  \item Das System soll genau eine Jira-Cloud Instanz als Datenquelle verwenden. 
+  \item Die Interaktion mit der Jira-Cloud API soll mittels der breits von Atlassian bereitgestellten Softwarekomponenten umgesetzt werden. Es soll Basic-Authorization verwendet werden.
+  \item Es soll möglich sein, diese Projekte genau zu konfigurieren. Dabei soll es auch möglich sein, für jedes Projekt die zu extrahierenden Vorgangstypen festzulegen. Folgende JSON-Datei gibt unserer Applikation die Anweisung, den Issuetype Task und Bug des Projektes mit dem Schlüssel KAW und den Issuetype Story und Task des Projektes mit dem Schlüssel MUN zu extrahieren und in das Zielsystem zu laden:
+    \begin{lstlisting}
+    {
+        "KAW": ["Task", "Bug"],
+        "MUN": ["Story", "Task"]
+    }
+    \end{lstlisting}
+  \item Das System soll alle neuen oder geänderten Objekte periodisch exportieren. Ein Exportvorgang soll einmal pro Tag stattfinden. Ein Exportvorgang soll immer zur gleichen Tageszeit und außerhalb der Zeit geschehen, in welcher mit dem Zielsystem gearbeitet wird.
+\end{itemize}
+
 
 \subsection{Nicht-funktionale Anforderungen}
 Nicht-funktionale Anforderungen beschreiben den Aufbau des Systems. Auch sie werden in Form von Testfällen nach Beenden der Entwicklung geprüft und müssen für eine erfolgreiche Entwicklung erfüllt sein.\\
-Das System soll alle Extraktionsvorgänge in einer Datenbank dokumentieren und falls eine Ausführung nicht stattgefunden hat, dieses erkennen, diese bis zu einem gewissen Zeitpunkt nachholen. Eine Ausführung kann beispielsweise nicht stattfinden, wenn das System zum geplanten Zeitpunkt nicht lauffähig ist. Wird die Applikation später gestartet, soll diese mit der Ausführung beginnen.
-Das System soll flexibel gestaltet sein und alle notwendigen Parameter zur Extraktion durch Umgebungsvariablen erhalten. Wichtige Parameter sind beispielsweise der Jira Benutzer, dessen Passwort und die URL der Jira Instanz. Ein Pfad zur Konfigurationsdatei aller relevanten Jira-Projekte sowie Vorgangstypen, welche zur Extraktion bestimmt sind, soll auch durch eine Umgebungsvariable gesetzt werden können.
-Die Applikation soll speziell für containerisierte Umgebungen und Cloudumgebungen bestimmt sein und somit als Image für IaC-Anwendungen (z.B. Docker oder Kubernetes) ausführbar sein.
+\begin{itemize}
+\item Das System soll alle Extraktionsvorgänge in einer Datenbank dokumentieren und falls eine Ausführung nicht stattgefunden hat, dieses erkennen, diese bis zu einem gewissen Zeitpunkt nachholen. Eine Ausführung kann beispielsweise nicht stattfinden, wenn das System zum geplanten Zeitpunkt nicht lauffähig ist. Wird die Applikation später gestartet, soll diese mit der Ausführung beginnen.
+\item Das System soll flexibel gestaltet sein und alle notwendigen Parameter zur Extraktion durch Umgebungsvariablen erhalten. Wichtige Parameter sind beispielsweise der Jira Benutzer, dessen Passwort und die URL der Jira Instanz. Ein Pfad zur Konfigurationsdatei aller relevanten Jira-Projekte sowie Vorgangstypen, welche zur Extraktion bestimmt sind, soll auch durch eine Umgebungsvariable gesetzt werden können.
+\item Die Applikation soll speziell für containerisierte Umgebungen und Cloudumgebungen bestimmt sein und somit als Image für IaC-Anwendungen (z.B. Docker oder Kubernetes) ausführbar sein.
+\end{itemize}
 \section{Auswahl der Softwarekomponenten}
 Im folgenden wird begründet, warum eine bestimmte Technologie ausgewählt wird und wie diese unser System ergänzt und warum diese optimal mit anderen Komponenten integriert werden kann.
 \subsubsection{Auswahl eines geeigneten Datenbankmodells}
@@ -92,8 +97,14 @@ Die Architektur unseres Systems ist einem Data Warehouse sehr ähnlich und erfü
   \item Fach-orientiert: Unser Datenbestand hält fachliche Daten aus dem operativen Geschäftsablauf.
 \end{itemize}
 \section{Chancen und Eigenschaften von Graphdatenbanken}
-\newpage
-\section{Systemarchitektur und Implementierung}
+\section{Design und Architektur}
+\subsection{Grundlagen des ETL-Prozesses}
+Unsere aufzubauende Datenbank kann als Data-Warehouse betrachtet werden und wird demnach mit Hilfe eines ETL-Prozesses aufgebaut und befüllt. Die Datenbank soll immer bestmöglich den Stand des Quellsystems abbilden. Eine Möglichkeit der Datenübernahme in den Knowledge Graphen wäre ein periodisch ablaufender Job, welcher alle Änderungen aus dem Quellsystem identifiziert und extrahiert. Dieser Ablauf wird in unserem Fall möglich sein, da jedes Jira-Ticket standardmäßig ein Feld \glqq Created\grqq\:und \glqq Updated\grqq\:besitzt, welches uns erlaubt, alle neuen Änderungen im System zu erkennen. Der Job lässt sich in zwei Aufgaben unterteilen. Ein Teil davon wird alle neu erstellten Tickets der letzten Periode übernehmen. Der zweite Teil des Jobs wird alle geänderten Tickets der letzten Periode erkennen und die Änderungen extrahieren und übernehmen. Um eine hohe Aktualität des Knowledge Graphen zu gewährleisten ist die Periodendauer möglichst gering zu wählen. \\
+\subsection{Duplikaterkennung}
+Inkonsistenzen können in unserem System entstehen, wenn ein Jira-Ticket fehlerhafte Daten enthält. Existieren zwei Tickets, welche denselben Sachverhalt beschreibt handelt es sich um ein Duplikat. Beschreiben zwei Tickets den gleichen Sachverhalt sind diese nicht als Duplikat zu werten sondern weisen darauf hin, dass ein Problem möglicherweise öfters auftritt und somit schwerwiegender sein könnte. Wahre Duplikate können zu einem Ticket zusammengeführt werden. Zwei Tickets, die mit einer gewissen Wahrscheinlichkeit den gleichen Sachverhalt beschreiben können entweder bei der Übernehme in das Data Warehouse mittels KI mit einem Ähnlichkeitswert versehen werden oder ohne Ähnlichkeitswert übernommen werden. Im zweiten Fall werden ähnliche oder gleiche Sachverhalten später durch den Chatbot bei Anfragen erkannt. Eine genaue Handhabung von Duplikaten und ähnlichen Tickets wird genauer in der Abschlussarbeit erläutert.\\
+Haben sich Informationen im Quellsystem seit der letzten Übernahme geändert, so wird eine neue Version des Tickets angelegt. Eine Änderung lässt sich durch das Feld \glqq Updated\grqq\:bestimmen. Dabei handelt es sich um einen Zeitstempel der letzten Änderung. Welches Feld sich genau geändert hat ist nur durch einen aufwändigeren Abgleich mit der vorherigen Version des Tickets bestimmbar.
+\subsection{Auditierung}
+\section{Implementierung und Testen}
 \subsection{Implementierung der Extraktor-Komponente}
 \subsubsection{Extraktion der Daten}
 Der Extraktor soll kaskadenartig vorgehen. In einem Jira-Projekt stehen viele Objekttypen mit einer 1:n Kardinalität in Verbindung (z.B Projekt und Issue oder Issue und Kommentar). Der Extraktor beginnt mit dem höchsten Objekt in der Hierarchie also einem Jira Projekt und arbeitet sich schrittweise durch alle Objekttypen. Zunächst werden für ein Jira Projekt alle relevanten Vorgänge ermittelt und extrahiert. Diese Vorgänge wiederum stehen in Beziehung mit weiteren Objekttypen, welche anschließend ebenfalls extrahiert werden. Dabei sind Felder, Kommentare, Anhänge oder die Historie des Vorgangs relevant. Außerdem soll zu jedem Vorgang auch der Vorgangstyp extrahiert werden, welcher meist die Art des Vorgangs beschreibt. Ein Vorgangstyp Bug beispielsweise verdeutlicht, dass dieser Vorgang existiert, um ein bestehendes Problem zu lösen.
