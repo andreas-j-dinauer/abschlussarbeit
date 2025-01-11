@@ -48,23 +48,15 @@
 \setcounter{section}{0}
 \renewcommand\thesection{\arabic{section}}
 \pagenumbering{arabic}
-\section{Einleitung}
-Ungefähr 4 von 5 Personen kommunizieren laut Umfragen mit Chatbots. Außerdem geben 27 Prozent aller Unternehmen an, einen Chatbot im Einsatz zu haben. 22 Prozent aller Unternehmen nutzen bereits durch Künstliche Intelligenz automatisierte oder unterstützte Arbeitsschritte. Um Chatbots im Unternehmenskontext einsetzen zu können, müssen diese mit dem Unternehmensumfeld, also den Daten und Abläufen des Unternehmens vertraut gemacht werden. Dazu wird untersucht, wie ein Knowledge Graph aus einer bereits existierenden und stetig weiter wachsenden Sammlung aus Tickets eines Jira-Systems erstellt werden kann. Berücksichtigt werden hierbei Duplikate, Dateninkonsistenzen, sowie die Historisierung und Auditierung. Der Hauptaspekt dieser Arbeit ist das Design, sowie die Implementierung des Datenbankschemas und der Extraktor-Komponente. Am Ende wird geprüft, ob sich eine Graphdatenbank für die Integration eines Chatbots eigenet, um möglichst schnell und präsize das Informationsbefürdnis eines Anwender zu befriedigen.
-\section{Aufbau des Systems}
-Das System besteht aus drei verschiedenen Komponenten, dem Quellsystem, einem Extraktor sowie einem Zielsystem. Im Quellsystem befinden sich die Rohdaten aus dem operativen Betrieb. Diese sollen mit Hilfe des Extraktors extrahiert und im Zielsystem strukturiert abgespeichert werden. Während es sich beim Quellsystem um eine Jira Cloud-Instanz handelt, ist das Zielsystem eine Datenbank. Der Extraktor ist ein Softwareprogramm, welches periodisch zur Ausführung gebracht wird.
-\begin{figure}[h]
-\centering
-\includegraphics[scale=.6]{dateien/ETL-Prozess.jpg}
-\caption{Der ETL-Prozess zum Aufbau des Knowledge Graphen}
-\label{fig:meine-grafik}
-\end{figure}
+\include{kapitel1}
 \section{Anforderungserhebung}
-Zunächst müssen die Anforderungen an das System erhoben und kategorisiert werden. Dabei wird zwischen funktionalen und nicht-funktionalen Anforderungen unterschieden.
+Zunächst müssen die Anforderungen an das System erhoben und kategorisiert werden. Dabei wird zwischen funktionalen und nicht-funktionalen Anforderungen unterschieden. Alle in diesem Kapitel erhobenen Anforderungen sind so gestaltet, dass die Applikation im beliebigem Kontext  und dynamisch eingesetzt werden kann. Den Anforderungen liegt kein spezifischer Anwendungsfall zugrunde.\\
+Es gibt vier verschiedene Ansätze zur Erfassung für Anforderungen. Die folgenden Anforderungen wurde größtenteils auf Basis eigener Überlegungen und ersten Code-Ausführungen durch den Ansatz "Kreativität" erhoben. Für eine Beobachtung oder das Untersuchen von Artifakten sind keine Ressourcen wie z.B. Dokumente oder bereits bestehende Anforderungen verfügbar.[978-3-658-37194-4, S.60]
 \subsection{Funktionale Anforderungen}
 Funktionale Anforderungen beschreiben die fachliche Spezifikation eines Systems, sowie alle Schnittstellen inklusive der Eingangs- sowie Ausgabeparameter des Systems. Diese Anforderungen werden in der Testphase der Entwicklung in Testfälle überführt. Können die Tests erfolgreich ausgeführt werden, so erfüllt die Applikation die zuvor festgelegten Anforderungen.\\
 \begin{itemize}
   \item Das System soll genau eine Jira-Cloud Instanz als Datenquelle verwenden. 
-  \item Die Interaktion mit der Jira-Cloud API soll mittels der breits von Atlassian bereitgestellten Softwarekomponenten umgesetzt werden. Es soll Basic-Authorization verwendet werden.
+  \item Die Interaktion mit der Jira-Cloud API in Java soll mittels der breits von Atlassian bereitgestellten Dependencies umgesetzt werden. Es soll Basic-Authorization verwendet werden. Als Java Build-Tool soll Maven verwendet werden.
   \item Es soll möglich sein, diese Projekte genau zu konfigurieren. Dabei soll es auch möglich sein, für jedes Projekt die zu extrahierenden Vorgangstypen festzulegen. Folgende JSON-Datei gibt unserer Applikation die Anweisung, den Issuetype Task und Bug des Projektes mit dem Schlüssel KAW und den Issuetype Story und Task des Projektes mit dem Schlüssel MUN zu extrahieren und in das Zielsystem zu laden:
     \begin{lstlisting}
     {
@@ -73,21 +65,27 @@ Funktionale Anforderungen beschreiben die fachliche Spezifikation eines Systems,
     }
     \end{lstlisting}
   \item Das System soll alle neuen oder geänderten Objekte periodisch exportieren. Ein Exportvorgang soll einmal pro Tag stattfinden. Ein Exportvorgang soll immer zur gleichen Tageszeit und außerhalb der Zeit geschehen, in welcher mit dem Zielsystem gearbeitet wird.
+  \item Das System soll alle relevanten Objekte exportieren, die ein Jira-Projekt umfassend beschreiben. Diese sind z.B. Vorgänge, Vorgangstypen, Projekte und Kommentare.
+  \item Das System muss alle Daten auf die Zieldatenbank transformieren. Alle für die Analyse nicht relevanten Metadaten aus dem Jira-System sollen aussortiert werden. Ausschließlich wichtige Felder für die folgende Analysen sollen in ein angemessenes Format transormiert werden.
+  \item Die Extraktion eines jeden Objektes soll dokumentiert werden. Hierzu werden alle Vorgänge in einer Datenbank erfasst. Zu jedem Vorgang werden mindestens der Zeitpunkt, der Typ und die Kennung eines Objektes erfasst.
+  \item Die Applikation soll Änderungen an Objekten erkennen und diese historisieren, also alle Änderungen in einen zeitlichen Zusammenhang bringen und ordnen können.
+  \item Die Zieldatenbank soll für effiziente Analysen geeignet sein und Objekte effizient miteinander verknüpfen.
 \end{itemize}
-
-
 \subsection{Nicht-funktionale Anforderungen}
 Nicht-funktionale Anforderungen beschreiben den Aufbau des Systems. Auch sie werden in Form von Testfällen nach Beenden der Entwicklung geprüft und müssen für eine erfolgreiche Entwicklung erfüllt sein.\\
 \begin{itemize}
 \item Das System soll alle Extraktionsvorgänge in einer Datenbank dokumentieren und falls eine Ausführung nicht stattgefunden hat, dieses erkennen, diese bis zu einem gewissen Zeitpunkt nachholen. Eine Ausführung kann beispielsweise nicht stattfinden, wenn das System zum geplanten Zeitpunkt nicht lauffähig ist. Wird die Applikation später gestartet, soll diese mit der Ausführung beginnen.
+\item Das Systen muss weitestgehend fehlerfrei arbeiten. Insbesondere müssen alle vorgesehenen Objekte extrahiert werden. Es darf kein Objekt, welches geändert oder neu erstellt wurde ohne Export im Quellsystem (durch z.B Fehler mit dem Zeitstempel durch Latenzen bei der Anfrage) verbleiben.
 \item Das System soll flexibel gestaltet sein und alle notwendigen Parameter zur Extraktion durch Umgebungsvariablen erhalten. Wichtige Parameter sind beispielsweise der Jira Benutzer, dessen Passwort und die URL der Jira Instanz. Ein Pfad zur Konfigurationsdatei aller relevanten Jira-Projekte sowie Vorgangstypen, welche zur Extraktion bestimmt sind, soll auch durch eine Umgebungsvariable gesetzt werden können.
 \item Die Applikation soll speziell für containerisierte Umgebungen und Cloudumgebungen bestimmt sein und somit als Image für IaC-Anwendungen (z.B. Docker oder Kubernetes) ausführbar sein.
+\item Die Applikation soll nicht skalierbar sein. Es ist nur eine Instanz im Betrieb vorgesehen. Ein Entwurf, um das System als Cluster zu betreiben ist sinnvoll, wird aber aufgrund von übermäßigem Aufwand bei der Implementierung der Kommunikation zwischen Instanzen nicht umgesetzt.
 \end{itemize}
 \section{Auswahl der Softwarekomponenten}
 Im folgenden wird begründet, warum eine bestimmte Technologie ausgewählt wird und wie diese unser System ergänzt und warum diese optimal mit anderen Komponenten integriert werden kann.
 \subsubsection{Auswahl eines geeigneten Datenbankmodells}
+Der Mehrwert der Applikation für einen Anwender entsteht durch die Auswertung der Daten in unserem Zielsystem. Daher ist es besonders wichtig, auf ein Datenbankmodell zurückzugreifen, welches unseren Anwendungszweck bestmöglich unterstützt.
 \subsubsection{Auswahl eines geeigneten Extraktors}
-Der Extraktor unseres Systems implementiert den ETL-Prozess und bringt diesen zur Ausführung. Implementiert wird dieser in der Programmiersprache Java. Grund hierfür ist, dass Java sehr weit verbreitet und etabliert ist sowie eine große Auswahl Frameworks und Bibliotheken bei der Entwicklung bietet. Zur Unterstützung in der Entwicklung wird ein Framework verwendet. Aus verschiedenen Gründe wird Quarkus eingesetzt. Quarkus zeichnet sich durch eine schnelle Startzeit sowie die Optimierung für Container-Technologien und somit Cloud-Umgebungen aus. Ein weiterer Vorteil der Quarkus-Frameworks ist die Implementierung der Jakarta WS RS Schnittstelle.
+Der Extraktor unseres Systems implementiert den ETL-Prozess und bringt diesen zur Ausführung. Seine Aufgabe ist das extrahieren der Daten, das transformieren der Daten in das Format des Zielsystems sowie das Laden der Daten in das Zielsystem. Implementiert wird dieser in der Programmiersprache Java. Grund hierfür ist, dass Java sehr weit verbreitet und etabliert ist sowie eine große Auswahl Frameworks und Bibliotheken bei der Entwicklung bietet. Zur Unterstützung in der Entwicklung wird ein Framework verwendet. Aus verschiedenen Gründe wird Quarkus eingesetzt. Ein großer Vorteil des Frameworks ist, dass es unter der Apache License 2.0 als Open Source Software eingesetzt werden kann. Außerdem bietet Quarkus eine sehr umfangreiche Auswahl an Erweiterungen für verschiedene Anwendungsfälle und unterstützt durch eine große Auswahl an Funktionen auch die Integration mit anderen Softwarekomponenten und Technologien. Quarkus zeichnet sich durch eine schnelle Startzeit sowie die Optimierung für Container-Technologien und somit Cloud-Umgebungen aus. Ein weiterer Vorteil der Quarkus-Frameworks ist die Implementierung der Jakarta WS RS Schnittstelle.
 \subsection{Konzept des Data Warehouses}
 Die Architektur unseres Systems ist einem Data Warehouse sehr ähnlich und erfüllt alle Eigenschaften eines Data Warehouses nach Inmon. Diese Erkenntnis unterstützt beim Entwurf des Systems und ermöglich es, Konzepte und Technologien des Data Warehouses einzusetzen.
 \begin{itemize}
@@ -117,6 +115,9 @@ Ein zentrales Problem beim Laden der Daten in unser Zielsystem ist die Erkennung
 \section{Anhang}
 \newpage
 \section{Literaturverzeichnis}
-Systematisches Requirements Engineering : Anforderungen ermitteln, dokumentieren, analysieren und verwalten 
+Koleoso, T. (2020) Beginning Quarkus Framework: Build Cloud-Native Enterprise Java Applications and Microservices, Berkeley, CA, Apress\\\\
+Quarkus (© 2024): What is Quarkus? [Online]. Verfügbar unter https://quarkus.io/about (Abgerufen am 11. November 2024)\\\\
+Tremp, H. (2022)  Agile objektorientierte Anforderungsanalyse:  Planen – Ermitteln – Analysieren – Modellieren – Dokumentieren – Prüfen, Wiesbaden, Springer Verlag\\\\
+Vaisman, A. und Zimányi, E. (2022) Data Warehouse Systems: Design and Implementation, 2. Aufl., Berlin, Springer Verlag\\\\
 
 \end{document}
