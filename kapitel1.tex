@@ -1,0 +1,19 @@
+\section{Einleitung}
+Ungefähr 4 von 5 Personen kommunizieren laut Umfragen mit Chatbots. Außerdem geben 27 Prozent aller Unternehmen an, einen Chatbot im Einsatz zu haben. 22 Prozent aller Unternehmen nutzen bereits durch Künstliche Intelligenz automatisierte oder unterstützte Arbeitsschritte. Um Chatbots im Unternehmenskontext einsetzen zu können, müssen diese mit dem Unternehmensumfeld, also den Daten und Abläufen des Unternehmens vertraut gemacht werden. Dazu wird untersucht, wie ein Knowledge Graph aus einer bereits existierenden und stetig weiter wachsenden Sammlung aus Tickets eines Jira-Systems erstellt werden kann. Berücksichtigt werden hierbei Duplikate, Dateninkonsistenzen, sowie die Historisierung und Auditierung. Der Hauptaspekt dieser Arbeit ist das Design, sowie die Implementierung des Datenbankschemas und der Extraktor-Komponente. Am Ende wird geprüft, ob sich eine Graphdatenbank für die Integration eines Chatbots eigenet, um möglichst schnell und präsize das Informationsbefürdnis eines Anwender zu befriedigen.
+\section{Aufbau des Systems}
+\subsection{Architektur}
+Das System besteht aus drei verschiedenen Komponenten, dem Quellsystem, einem Extraktor sowie einem Zielsystem. Im Quellsystem befinden sich die Rohdaten aus dem operativen Betrieb. Diese sollen mit Hilfe des Extraktors extrahiert und im Zielsystem strukturiert abgespeichert werden. Während es sich beim Quellsystem um eine Jira Cloud-Instanz handelt, ist das Zielsystem eine Datenbank. Der Extraktor ist ein Softwareprogramm, welches periodisch zur Ausführung gebracht wird.
+\subsection{Konzept des Data Warehouses}
+Die Architektur unseres Systems ist einem Data Warehouse sehr ähnlich und erfüllt alle Eigenschaften eines Data Warehouses nach Inmon. Diese Erkenntnis unterstützt beim Entwurf des Systems und ermöglich es, Konzepte und Technologien des Data Warehouses einzusetzen.
+\begin{itemize}
+  \item Historisierung: Alle Objekte des Jira Systems sind mit einem Zeitstempel der letzten Änderung, sowie der Erstellung versehen, was den Aufbau eines historisierten Datenbestandes ermöglicht.
+  \item Integriert: Wir extrahieren unsere Daten aus nur einem System. Das Hinzufügen eines weiteren Jira-Systems ist möglich und wird in der Architektur des Systems berücksichtigt.
+  \item Nicht-Volatilität: Der Datenbestand wird dauerhaft aufgebaut und bleibt bestehen. In Gegensatz zu operativen Systemen werden aus unserem Zielsystem keine Daten gelöscht.
+  \item Fach-orientiert: Unser Datenbestand hält fachliche Daten aus dem operativen Geschäftsablauf.
+\end{itemize}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=.6]{dateien/ETL-Prozess.jpg}
+\caption{Der ETL-Prozess zum Aufbau des Knowledge Graphen}
+\label{fig:meine-grafik}
+\end{figure}
