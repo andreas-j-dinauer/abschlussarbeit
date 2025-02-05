@@ -1,0 +1,108 @@
+\documentclass[10pt]{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{listings}
+\usepackage[a4paper, total={150mm, 237mm}]{geometry}
+\usepackage{fontspec}
+\setmainfont{Arial}
+\usepackage{tabularx}
+
+\begin{document}
+
+%\renewcommand\thesection{\ifnum\value{section}<5\Roman{section}\else\arabic{section}\fi}
+\renewcommand\thesection{\Roman{section}}
+\pagenumbering{Roman}
+\begin{titlepage}
+    \begin{center}
+        \includegraphics[scale=.3]{dateien/THI_Logo.jpg} \\
+        \vspace{0.5cm}
+        Technische Hochschule Ingolstadt\\
+        \vspace{1cm}
+        \normalsize
+        Andreas Dinauer\\
+        and2925@thi.de\\
+        
+        \vspace*{0.5cm}
+        \LARGE
+        \textbf{Erstellung eines Knowledge Graphen aus Jira-Tickets}
+            
+        \vspace{1cm}
+        \normalsize
+        Erstprüfer/-in: Prof. Dr. Hans-Michael Windisch \\
+        Zweitprüfer/-in: Prof. Dr. Beate Navarro Bullock \\
+        \vspace{1cm}
+        \normalsize
+        Externer Partner: Exentra GmbH
+            
+    \end{center}
+\end{titlepage}
+
+\newpage
+
+\section{Inhaltsverzeichnis}
+\newpage
+\section{Abkürzungsverzeichnis}
+\newpage
+\section{Abbildungsverzeichnis}
+\newpage
+\section{Tabellenverzeichnis}
+\newpage
+\setcounter{section}{0}
+\renewcommand\thesection{\arabic{section}}
+\pagenumbering{arabic}
+\include{kapitel1}
+\include{kapitel2}
+\section{Auswahl der Softwarekomponenten}
+Im folgenden wird begründet, warum eine bestimmte Technologie ausgewählt wird und wie diese unser System ergänzt und warum diese optimal mit anderen Komponenten integriert werden kann.
+\subsubsection{Auswahl eines geeigneten Datenbankmodells}
+Der Mehrwert der Applikation für einen Anwender entsteht durch die Auswertung der Daten in unserem Zielsystem. Daher ist es besonders wichtig, auf ein Datenbankmodell zurückzugreifen, welches unseren Anwendungszweck, also das Integrieren mit einem Chatbot bestmöglich unterstützt. Im folgenden werden Datenbanken welche bei sehr spezifische Anwendungszwecken zum Einsatz kommen wie z.B eine Zeitstempel-Datenbank oder eine Key-Value-Datenbank nicht weiter betrachtet. Zur Auswahl stehen eine relationale Datenbank oder eine Graph-Datenbank. Um eine Entscheidung zu treffen, werden die beiden Datenbankmodelle anhand verschiedener Kriterien in Bezug zu unserem Anwendungsfall bewertet. Jedes Kriterium besitzt dabei eine Gewichtung. Ist das Kriterium besonders ausschlaggebend so ist die Gewichtung hoch. Eine ausführliche Erörterung der Kriterien folgt im Anschluss an die Tabelle.
+
+\begin{table}[h!]
+\centering
+\caption{Das Relationale und das Graph-Datenbankmodell im Vergleich}
+\begin{tabularx}{\textwidth}{|p{0.25\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|}
+\hline
+\textbf{Kriterium} & \textbf{Gewichtung} & \textbf{Relationale \newline Datenbanken} & \textbf{Graph Datenbanken} \\ \hline
+Verknüpfungen         & 0,5         & Relationen werden mittels logischer Verknüpfung verbunden. Dies bietet eine gute Lesbarkeit, aber beeinträchtigt die Bearbeitungszeit einer Anfrage signifikant & Graph Datenbanken implementieren die Verknüpfung von Entitäten durch eine physische Verlinkung in Form eines Pointers. Diese Herangehensweise resultiert in schnelleren Anfragen.  \\ \hline
+Horizontale \newline Skalierbarkeit         & 0,3         & Eintrag 6   & Eintrag 3        \\ \hline
+ACID-Eigenschaften         & 0,2         & 1,0    & 0,2      \\ \hline
+\textbf{Ergebnis}         &         & \textbf{1,0}    & \textbf{0,2}      \\ \hline
+\end{tabularx}
+\end{table}
+\subsubsection{Auswahl eines geeigneten Extraktors}
+Der Extraktor unseres Systems implementiert den ETL-Prozess und bringt diesen zur Ausführung. Seine Aufgabe ist das extrahieren der Daten, das transformieren der Daten in das Format des Zielsystems sowie das Laden der Daten in das Zielsystem. Implementiert wird dieser in der Programmiersprache Java. Grund hierfür ist, dass Java sehr weit verbreitet und etabliert ist sowie eine große Auswahl Frameworks und Bibliotheken bei der Entwicklung bietet. Zur Unterstützung in der Entwicklung wird ein Framework verwendet. Aus verschiedenen Gründe wird Quarkus eingesetzt. Ein großer Vorteil des Frameworks ist, dass es unter der Apache License 2.0 als Open Source Software eingesetzt werden kann. Außerdem bietet Quarkus eine sehr umfangreiche Auswahl an Erweiterungen für verschiedene Anwendungsfälle und unterstützt durch eine große Auswahl an Funktionen auch die Integration mit anderen Softwarekomponenten und Technologien. Quarkus zeichnet sich durch eine schnelle Startzeit sowie die Optimierung für Container-Technologien und somit Cloud-Umgebungen aus.\\
+Ein weiterer Vorteil der Quarkus-Frameworks ist die Implementierung der Jakarta WS RS Schnittstelle, welche grundlegende Funktionalitäten für eine Unternehmensanwedung bietet. Die Implementierung einer offenen Spezifikation ermöglicht einen nahtlosen Umstieg auf ein alternatives Framework, welches ebenfalls diese Spezifikation implementiert, falls dieses notwendig ist. Alternative Frameworks wie z.B. Spring Boot implementiert z. T. proprietäre Spezifikationen und erschwert somit einen Wechsel, da häufig eine erneute Implementierung notwendig ist.
+\section{Chancen und Eigenschaften von Graphdatenbanken}
+\section{Design und Architektur}
+\subsection{Grundlagen des ETL-Prozesses}
+Unsere aufzubauende Datenbank kann als Data-Warehouse betrachtet werden und wird demnach mit Hilfe eines ETL-Prozesses aufgebaut und befüllt. Die Datenbank soll immer bestmöglich den Stand des Quellsystems abbilden. Eine Möglichkeit der Datenübernahme in den Knowledge Graphen wäre ein periodisch ablaufender Job, welcher alle Änderungen aus dem Quellsystem identifiziert und extrahiert. Dieser Ablauf wird in unserem Fall möglich sein, da jedes Jira-Ticket standardmäßig ein Feld \glqq Created\grqq\:und \glqq Updated\grqq\:besitzt, welches uns erlaubt, alle neuen Änderungen im System zu erkennen. Der Job lässt sich in zwei Aufgaben unterteilen. Ein Teil davon wird alle neu erstellten Tickets der letzten Periode übernehmen. Der zweite Teil des Jobs wird alle geänderten Tickets der letzten Periode erkennen und die Änderungen extrahieren und übernehmen. Um eine hohe Aktualität des Knowledge Graphen zu gewährleisten ist die Periodendauer möglichst gering zu wählen. \\
+\subsection{Versionierung}
+Das Quellsystem, aus welchem der Knowledge Graph aufgebaut werden soll, befindet sich im operativen Geschäftsumfeld und es muss somit beachtet werden, dass die Daten des Systems nicht konstant sind und regelmäßig Änderungen an den fachlichen Daten des Quellsystems vorgenommen werden können. Um diese Änderungen im Knowledge Graphen abzubilden, soll der Zustand des Objektes von seiner Id entkoppelt werden. Der Zustand des Objektes wird mit einem Zeitstempel sowie einer Versionsnummer mit der Id verknüpft.
+Wird ein Objekt neu angelegt und aus dem Quellsystem extrahiert, so wird dieses Objekt im Zielsystem initial mit der Versionsnummer 1 angelegt. Wird in einem zukünftigen Extraktionsvorgang das gleiche Objekt mit einer Änderung seiner Felder erkannt, so wird das Objekt nicht erneut angelegt, sondern lediglich als eine weitere Version dieses Objektes behandelt.
+\subsection{Duplikaterkennung}
+Inkonsistenzen können in unserem System entstehen, wenn ein Jira-Ticket fehlerhafte Daten enthält. Existieren zwei Tickets, welche denselben Sachverhalt beschreibt handelt es sich um ein Duplikat. Beschreiben zwei Tickets den gleichen Sachverhalt sind diese nicht als Duplikat zu werten sondern weisen darauf hin, dass ein Problem möglicherweise öfters auftritt und somit schwerwiegender sein könnte. Wahre Duplikate können zu einem Ticket zusammengeführt werden. Zwei Tickets, die mit einer gewissen Wahrscheinlichkeit den gleichen Sachverhalt beschreiben können entweder bei der Übernehme in das Data Warehouse mittels KI mit einem Ähnlichkeitswert versehen werden oder ohne Ähnlichkeitswert übernommen werden. Im zweiten Fall werden ähnliche oder gleiche Sachverhalten später durch den Chatbot bei Anfragen erkannt. Eine genaue Handhabung von Duplikaten und ähnlichen Tickets wird genauer in der Abschlussarbeit erläutert.\\
+Haben sich Informationen im Quellsystem seit der letzten Übernahme geändert, so wird eine neue Version des Tickets angelegt. Eine Änderung lässt sich durch das Feld \glqq Updated\grqq\:bestimmen. Dabei handelt es sich um einen Zeitstempel der letzten Änderung. Welches Feld sich genau geändert hat ist nur durch einen aufwändigeren Abgleich mit der vorherigen Version des Tickets bestimmbar.
+\subsection{Auditierung}
+\section{Implementierung und Testen}
+\subsection{Implementierung der Extraktor-Komponente}
+\subsubsection{Extraktion der Daten}
+Der Extraktor soll kaskadenartig vorgehen. In einem Jira-Projekt stehen viele Objekttypen mit einer 1:n Kardinalität in Verbindung (z.B Projekt und Issue oder Issue und Kommentar). Der Extraktor beginnt mit dem höchsten Objekt in der Hierarchie also einem Jira Projekt und arbeitet sich schrittweise durch alle Objekttypen. Zunächst werden für ein Jira Projekt alle relevanten Vorgänge ermittelt und extrahiert. Diese Vorgänge wiederum stehen in Beziehung mit weiteren Objekttypen, welche anschließend ebenfalls extrahiert werden. Dabei sind Felder, Kommentare, Anhänge oder die Historie des Vorgangs relevant. Außerdem soll zu jedem Vorgang auch der Vorgangstyp extrahiert werden, welcher meist die Art des Vorgangs beschreibt. Ein Vorgangstyp Bug beispielsweise verdeutlicht, dass dieser Vorgang existiert, um ein bestehendes Problem zu lösen.
+\subsubsection{Laden der Daten}
+Ein zentrales Problem beim Laden der Daten in unser Zielsystem ist die Erkennung von bereits zuvor extrahierten und geladenen Objekten. Um ein breits in das Zielsystem geladenes Objekt zu identifizieren, kann zunächst ein eindeutiger Schlüssel festgelegt werden. Stimmt dieser Schlüssel mit einem Objekt im Zielsystem überein, wurde dieses Objekt bereits geladen und ein Match wurde gefunden. Außerdem können jedoch Sachverhalte auftreten in welchen ein Schlüssel nicht ausreichend ist, um einen Sachverhalt mittels dem Vergleich einer Zeichenkette zwei Objekte als dasselbe zu identifizieren. In folge dessen ist ein ausführlicher Vergleich verschiedener Attribute der Objekte notwendig. Sind umfangreiche Freitextfelder wie z.B Beschreibungen vorhanden, können diese mittels Künstlicher Intelligenz verglichen werden, um möglicherweise einen Match zu erkennen. Bei einem Jira-Ticket sind können verschiedene Felder, wie z.B der Titel oder die Beschreibung eines Tickets für einen Vergleich herangezogen werden.
+
+\subsubsection{Quellsystem}
+\subsubsection{Zielsystem}
+\subsection{}
+\section{Anhang}
+\newpage
+\section{Literaturverzeichnis}
+Atlassian Support (© 2025) [Online]. Verfügbar unter https://support.atlassian.com (Abgerufen am 24. Januar 2025)\\\\
+Fensel, D. et al. (2020) Knowledge graphs: methodology, tools and selected use cases, Berlin, Springer Verlag\\\\
+Koleoso, T. (2020) Beginning Quarkus Framework: Build Cloud-Native Enterprise Java Applications and Microservices, Berkeley, CA, Apress\\\\
+Quarkus (© 2024): What is Quarkus? [Online]. Verfügbar unter https://quarkus.io/about (Abgerufen am 11. November 2024)\\\\
+Schobert, M. et al. (2024) Unveiling Causality in Stateful Enterprise Knowledge Graphs: An Exploration of Process-Driven Object Relationships, Amsterdam NL, Elsevir\\\\
+Robinson, I., Webber, J. und Eifrem, E. (2015) Graph Databases: New opportunities for connected data, 2. Aufl., Sebastopol CA USA, O'Reilley\\\\
+Seacord, R. und Wrage L. (2002) Replaceable Components and the Service Provider Interface [Online], Pittsburgh USA, Carnegie Mellon University. Verfügbar unter https://insights.sei.cmu.edu/documents/1994/2002\_004\_001\_13958.pdf\\\\
+Tremp, H. (2022)  Agile objektorientierte Anforderungsanalyse:  Planen – Ermitteln – Analysieren – Modellieren – Dokumentieren – Prüfen, Wiesbaden, Springer Verlag\\\\
+Vaisman, A. und Zimányi, E. (2022) Data Warehouse Systems: Design and Implementation, 2. Aufl., Berlin, Springer Verlag\\\\
+
+\end{document}
